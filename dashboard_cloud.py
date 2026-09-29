@@ -27,6 +27,7 @@ except Exception as e:
 # --- Sidebar Filters ---
 st.sidebar.header("Filters")
 
+df = df.dropna(subset=['date'])
 min_date = df['date'].min()
 max_date = df['date'].max()
 date_from = st.sidebar.date_input("From date", value=min_date, min_value=min_date, max_value=max_date)

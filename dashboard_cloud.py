@@ -14,6 +14,9 @@ URL = f"https://drive.google.com/uc?export=download&id={GDRIVE_FILE_ID}&confirm=
 @st.cache_data(ttl=3600)
 def load_data():
     df = pd.read_csv(URL, on_bad_lines='skip')
+    # Rename date column if it came out as grn_created_at
+    if 'grn_created_at' in df.columns and 'date' not in df.columns:
+        df = df.rename(columns={'grn_created_at': 'date'})
     df['date'] = pd.to_datetime(df['date'], errors='coerce').dt.date
     return df
 

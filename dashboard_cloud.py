@@ -10,7 +10,8 @@ GITHUB_USER = "aditya-fk-minutes"
 GITHUB_REPO = "Putaway-Dashboard"
 # ------------------------
 
-URL = f"https://raw.githubusercontent.com/{GITHUB_USER}/{GITHUB_REPO}/main/putaway_detail.csv"
+BASE = f"https://raw.githubusercontent.com/{GITHUB_USER}/{GITHUB_REPO}/main"
+URL = f"{BASE}/putaway_detail.csv"
 
 @st.cache_data(ttl=3600)
 def load():

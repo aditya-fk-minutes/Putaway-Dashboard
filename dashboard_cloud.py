@@ -1,28 +1,17 @@
 import streamlit as st
 import pandas as pd
-import requests
-import io
 
 st.set_page_config(page_title="Putaway Dashboard", layout="wide")
 st.title("📦 Putaway Darkstore Dashboard")
 
-# ---- PASTE YOUR GOOGLE DRIVE FILE ID HERE ----
-# Get it from the share link: https://drive.google.com/file/d/THIS_PART/view
-GDRIVE_FILE_ID = "1a5GR7W_WU0lVDiNKLTd8fu5H23HyUpR5"
-# -----------------------------------------------
+# ---- PASTE YOUR GOOGLE SHEETS PUBLISHED CSV URL HERE ----
+# In Google Sheets: File → Share → Publish to web → CSV → copy URL
+SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSR3D_Zh8L43UMDF9Bx11q41cODPSzMxl3P3I8FrH9OGdhNcUy5vqKB3ROtSqlZEgQGbu7_qN3Fr8jj/pub?output=csv"
+# ----------------------------------------------------------
 
 @st.cache_data(ttl=3600)
 def load_data():
-    session = requests.Session()
-    url = f"https://drive.google.com/uc?export=download&id={GDRIVE_FILE_ID}"
-    response = session.get(url, stream=True)
-    # Handle Google's virus scan warning for larger files
-    for key, value in response.cookies.items():
-        if key.startswith('download_warning'):
-            url = f"https://drive.google.com/uc?export=download&id={GDRIVE_FILE_ID}&confirm={value}"
-            response = session.get(url, stream=True)
-            break
-    df = pd.read_csv(io.StringIO(response.content.decode('utf-8')))
+    df = pd.read_csv(SHEET_CSV_URL)
     df['date'] = pd.to_datetime(df['date'], errors='coerce').dt.date
     return df
 
@@ -72,8 +61,6 @@ st.line_chart(daily)
 
 st.divider()
 
-# --- Raw Summary Table ---
+# --- Summary Table ---
 st.subheader("Summary Table")
 st.dataframe(filtered.sort_values(['date', 'destination_warehouse']), use_container_width=True)
-
-st.caption(f"Data last refreshed from Google Drive · {len(df)} summary rows loaded")

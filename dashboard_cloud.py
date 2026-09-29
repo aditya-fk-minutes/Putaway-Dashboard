@@ -11,6 +11,7 @@ GITHUB_FILE = "putaway_summary.csv"
 # ------------------------
 
 RAW_URL = f"https://raw.githubusercontent.com/{GITHUB_USER}/{GITHUB_REPO}/main/{GITHUB_FILE}"
+MISSING_URL = f"https://raw.githubusercontent.com/{GITHUB_USER}/{GITHUB_REPO}/main/missing_data.csv"
 
 @st.cache_data(ttl=3600)
 def load_data():
@@ -18,8 +19,15 @@ def load_data():
     df['date'] = pd.to_datetime(df['date'], errors='coerce').dt.date
     return df
 
+@st.cache_data(ttl=3600)
+def load_missing():
+    df = pd.read_csv(MISSING_URL)
+    df['grn_created_at'] = pd.to_datetime(df['grn_created_at'], errors='coerce').dt.date
+    return df
+
 try:
     df = load_data()
+    missing_df = load_missing()
 except Exception as e:
     st.error(f"Could not load data: {e}")
     st.stop()
@@ -68,3 +76,20 @@ st.divider()
 # --- Summary Table ---
 st.subheader("Summary Table")
 st.dataframe(filtered.sort_values(['date', 'destination_warehouse']), use_container_width=True)
+
+st.divider()
+
+# --- Missing Data Rows ---
+st.subheader("Rows with Missing Data")
+missing_filtered = missing_df.copy()
+if selected_wh:
+    missing_filtered = missing_filtered[missing_filtered['destination_warehouse'].isin(selected_wh)]
+missing_filtered = missing_filtered[
+    (missing_filtered['grn_created_at'] >= date_from) &
+    (missing_filtered['grn_created_at'] <= date_to)
+]
+st.write(f"**{len(missing_filtered):,} rows** with empty grn_created_by or inv_storage_location_label")
+st.dataframe(missing_filtered, use_container_width=True)
+
+csv = missing_filtered.to_csv(index=False).encode('utf-8')
+st.download_button("⬇️ Download Missing Rows", csv, "missing_data.csv", "text/csv")

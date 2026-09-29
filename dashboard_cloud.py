@@ -38,7 +38,7 @@ def load():
     manifest_url = f"{BASE}/putaway_detail.csv.manifest"
     r = requests.get(manifest_url)
     if r.status_code == 200:
-        parts = r.text.strip().split("\n")
+        parts = [p.strip() for p in r.text.strip().splitlines() if p.strip()]
         chunks = []
         for p in parts:
             part_url = f"{BASE}/{p}"

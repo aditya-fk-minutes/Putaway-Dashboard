@@ -25,9 +25,11 @@ except Exception as e:
 
 # --- Sidebar Filters ---
 st.sidebar.header("Filters")
+from datetime import date, timedelta
 min_date, max_date = df['date'].min(), df['date'].max()
-date_from = st.sidebar.date_input("From date", value=min_date, min_value=min_date, max_value=max_date)
-date_to   = st.sidebar.date_input("To date",   value=max_date, min_value=min_date, max_value=max_date)
+yesterday = max_date  # most recent date in data = D-1
+date_from = st.sidebar.date_input("From date", value=yesterday, min_value=min_date, max_value=max_date)
+date_to   = st.sidebar.date_input("To date",   value=yesterday, min_value=min_date, max_value=max_date)
 
 warehouses  = sorted(df['warehouse'].dropna().unique())
 selected_wh = st.sidebar.multiselect("Warehouse", warehouses, placeholder="All")

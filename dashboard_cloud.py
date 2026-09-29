@@ -1,5 +1,6 @@
 import streamlit as st
 import pandas as pd
+import requests
 
 st.set_page_config(page_title="Putaway Dashboard", layout="wide")
 st.title("📦 Putaway Darkstore Dashboard")
@@ -13,7 +14,17 @@ URL = f"https://raw.githubusercontent.com/{GITHUB_USER}/{GITHUB_REPO}/main/putaw
 
 @st.cache_data(ttl=3600)
 def load():
-    df = pd.read_csv(URL)
+    import io
+    # Check if file was split into parts
+    manifest_url = f"{BASE}/putaway_detail.csv.manifest"
+    r = requests.get(manifest_url)
+    if r.status_code == 200:
+        parts = r.text.strip().split("\n")
+        chunks = [requests.get(f"{BASE}/{p}").content for p in parts]
+        content = b"".join(chunks)
+        df = pd.read_csv(io.BytesIO(content))
+    else:
+        df = pd.read_csv(URL)
     df['date'] = pd.to_datetime(df['date'], errors='coerce').dt.date
     return df.dropna(subset=['date', 'person', 'bin'])
 

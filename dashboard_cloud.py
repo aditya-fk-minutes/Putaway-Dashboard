@@ -1,5 +1,7 @@
 import streamlit as st
 import pandas as pd
+import requests
+import io
 
 st.set_page_config(page_title="Putaway Dashboard", layout="wide")
 st.title("📦 Putaway Darkstore Dashboard")
@@ -9,14 +11,18 @@ st.title("📦 Putaway Darkstore Dashboard")
 GDRIVE_FILE_ID = "1a5GR7W_WU0lVDiNKLTd8fu5H23HyUpR5"
 # -----------------------------------------------
 
-URL = f"https://drive.google.com/uc?export=download&id={GDRIVE_FILE_ID}&confirm=t"
-
 @st.cache_data(ttl=3600)
 def load_data():
-    df = pd.read_csv(URL, on_bad_lines='skip')
-    # Rename date column if it came out as grn_created_at
-    if 'grn_created_at' in df.columns and 'date' not in df.columns:
-        df = df.rename(columns={'grn_created_at': 'date'})
+    session = requests.Session()
+    url = f"https://drive.google.com/uc?export=download&id={GDRIVE_FILE_ID}"
+    response = session.get(url, stream=True)
+    # Handle Google's virus scan warning for larger files
+    for key, value in response.cookies.items():
+        if key.startswith('download_warning'):
+            url = f"https://drive.google.com/uc?export=download&id={GDRIVE_FILE_ID}&confirm={value}"
+            response = session.get(url, stream=True)
+            break
+    df = pd.read_csv(io.StringIO(response.content.decode('utf-8')))
     df['date'] = pd.to_datetime(df['date'], errors='coerce').dt.date
     return df
 

@@ -4,14 +4,17 @@ import pandas as pd
 st.set_page_config(page_title="Putaway Dashboard", layout="wide")
 st.title("📦 Putaway Darkstore Dashboard")
 
-# ---- PASTE YOUR GOOGLE SHEETS PUBLISHED CSV URL HERE ----
-# In Google Sheets: File → Share → Publish to web → CSV → copy URL
-SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSR3D_Zh8L43UMDF9Bx11q41cODPSzMxl3P3I8FrH9OGdhNcUy5vqKB3ROtSqlZEgQGbu7_qN3Fr8jj/pub?output=csv"
-# ----------------------------------------------------------
+# ---- CONFIGURE THIS ----
+GITHUB_USER = "aditya-fk-minutes"
+GITHUB_REPO = "Putaway-Dashboard"   # e.g. "putaway-dashboard"
+GITHUB_FILE = "putaway_summary.csv"
+# ------------------------
+
+RAW_URL = f"https://raw.githubusercontent.com/{GITHUB_USER}/{GITHUB_REPO}/main/{GITHUB_FILE}"
 
 @st.cache_data(ttl=3600)
 def load_data():
-    df = pd.read_csv(SHEET_CSV_URL)
+    df = pd.read_csv(RAW_URL)
     df['date'] = pd.to_datetime(df['date'], errors='coerce').dt.date
     return df
 

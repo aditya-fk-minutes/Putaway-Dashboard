@@ -35,16 +35,26 @@ def get_last_updated():
 @st.cache_data(ttl=3600)
 def load():
     import io
-    # Check if file was split into parts
     manifest_url = f"{BASE}/putaway_detail.csv.manifest"
     r = requests.get(manifest_url)
     if r.status_code == 200:
         parts = r.text.strip().split("\n")
-        chunks = [requests.get(f"{BASE}/{p}").content for p in parts]
+        chunks = []
+        for p in parts:
+            part_url = f"{BASE}/{p}"
+            resp = requests.get(part_url)
+            if resp.status_code != 200:
+                raise Exception(f"Failed to download {p}: HTTP {resp.status_code}")
+            chunks.append(resp.content)
         content = b"".join(chunks)
         df = pd.read_csv(io.BytesIO(content))
     else:
-        df = pd.read_csv(URL)
+        resp = requests.get(URL)
+        if resp.status_code != 200:
+            raise Exception(f"File not found on GitHub (HTTP {resp.status_code}). Run append_data.py first.")
+        df = pd.read_csv(io.StringIO(resp.text))
+    if 'date' not in df.columns:
+        raise Exception(f"'date' column missing. Columns found: {list(df.columns)}")
     df['date'] = pd.to_datetime(df['date'], errors='coerce').dt.date
     return df.dropna(subset=['date', 'person', 'bin'])
 

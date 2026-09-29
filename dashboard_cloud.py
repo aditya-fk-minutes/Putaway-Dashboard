@@ -9,11 +9,11 @@ st.title("📦 Putaway Darkstore Dashboard")
 GDRIVE_FILE_ID = "1a5GR7W_WU0lVDiNKLTd8fu5H23HyUpR5"
 # -----------------------------------------------
 
-URL = f"https://drive.google.com/uc?export=download&id={GDRIVE_FILE_ID}"
+URL = f"https://drive.google.com/uc?export=download&id={GDRIVE_FILE_ID}&confirm=t"
 
 @st.cache_data(ttl=3600)
 def load_data():
-    df = pd.read_csv(URL)
+    df = pd.read_csv(URL, on_bad_lines='skip')
     df['date'] = pd.to_datetime(df['date'], errors='coerce').dt.date
     return df
 
